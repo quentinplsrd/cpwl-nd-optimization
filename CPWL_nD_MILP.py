@@ -831,7 +831,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
     
 
 
-def illustrate_CPWL(data, variable_values,
+def illustrate_CPWL(data, variable_values, faces,
                     ax=None, size=5, colormap=None, alpha=0.4,
                     exploded_factor=0., show_tick=True):
     aPlus = variable_values['aPlus'] 
@@ -846,19 +846,16 @@ def illustrate_CPWL(data, variable_values,
             ax = plt.axes(projection="3d")
         xFlat, yFlat, zFlat = np.split(data,3,axis=1)
         ax_points = ax.scatter(xFlat, yFlat, zFlat, c='r', s=size)
-        aPlusOpt, bPlusOpt = np.split(aPlus,2,axis=1)
-        aMinusOpt, bMinusOpt = np.split(aMinus,2,axis=1)
-        setFaces = FacesFromPlanesEq(aPlusOpt.T,bPlusOpt.T,bPlus.reshape(1,-1),aMinusOpt.T,bMinusOpt.T,bMinus.reshape(1,-1))
         if colormap is None:
             face_colors='C0'
         else:
             cmap = matplotlib.colormaps[colormap]
-            num_faces = len(setFaces)
+            num_faces = len(faces)
             face_colors = face_colors = [cmap(i / num_faces) for i in range(num_faces)]
-        faceCollection = Poly3DCollection(setFaces,shade=False,facecolors=face_colors,edgecolors='k',alpha=alpha)
+        faceCollection = Poly3DCollection(faces,shade=False,facecolors=face_colors,edgecolors='k',alpha=alpha)
         ax.add_collection3d(faceCollection)
         if not show_tick:
-            ax.set_xlabel('x₁'); ax.set_ylabel('x₂')
+            ax.set_xlabel('x₁'); ax.set_ylabel('x₂'); ax.set_zlabel('z')
             ax.set_xticklabels([]) 
             ax.set_yticklabels([]) 
             ax.set_zticklabels([])
@@ -935,18 +932,18 @@ if __name__ == "__main__":
     
     print("Calculate all combinations of affine functions and the tight parameters")
     affine_set = find_affine_set(rescaled_data, rescaled_error)
-    tight_parameters = get_tight_parameters(rescaled_data, affine_set, max_slope=10)
+    tight_parameters = get_tight_parameters(rescaled_data, affine_set, max_slope=100)
     
     print("Solve the MILP model")
     model, variables, result = solve_CPWL_approximation(
-        rescaled_data, max_error=rescaled_error, N_plus=2, N_minus=3,
+        rescaled_data, max_error=rescaled_error, N_plus=2, N_minus=4,
         objective='average error',
         big_M_constraint='tight', integer_feasibility_tolerance=1e-9,
         solver='GUROBI', default_big_M=1e6, tight_parameters=tight_parameters,
         fix_first_affine_piece=True, impose_d_plus_1_points_per_piece='f+ and f-',
         sort_affine_pieces=False,
         bounded_variables=True,
-        time_limit_seconds=30)
+        time_limit_seconds=60)
     
     print("Extract and clean the CPWL results")
     variable_values = extract_values(variables, result, data=rescaled_data, clean_values=True)
@@ -959,6 +956,10 @@ if __name__ == "__main__":
     
     print("Calculate the affine pieces")
     results = find_affine_pieces(rescaled_variable_values, max_z=1e4)
+    
+    illustrate_CPWL(rescaled_data-1, rescaled_variable_values, results["dc"]["faces"],
+                        ax=None, size=5, colormap='tab20', alpha=0.4,
+                        exploded_factor=0., show_tick=False)
     
     print("Plot the affine pieces")
     face_colors='C0'
@@ -975,7 +976,7 @@ if __name__ == "__main__":
     print("Plot the pieces in their original scaling")
     _, slopes3, intercepts3 = rescale_data(data,between_one_and_two=False)
     rescaled_faces = rescale_faces(results["dc"]["faces"], slopes3, intercepts3)
-    plt.figure(figsize = (8,8),facecolor="w")
+    plt.figure(figsize = (8,8), facecolor="w")
     ax = plt.axes(projection="3d")
     faceCollection = Poly3DCollection(rescaled_faces,
                                       shade=False,
@@ -1034,7 +1035,7 @@ for k in range(len(N_plus_minus_list)):
         rescaled_data, max_error=max_error, N_plus=N_plus, N_minus=N_minus,
         objective='average error',
         big_M_constraint='tight', integer_feasibility_tolerance=1e-9,
-        solver='GUROBI', default_big_M=1e6, tight_parameters=tight_parameters,
+        solver='HIGHS', default_big_M=1e6, tight_parameters=tight_parameters,
         fix_first_affine_piece=True, impose_d_plus_1_points_per_piece='f+ and f-',
         sort_affine_pieces=False,
         bounded_variables=True,
