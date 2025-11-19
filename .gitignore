@@ -1,0 +1,88 @@
+# ------------------------
+# Python
+# ------------------------
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+.installed.cfg
+
+# Unit test / coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# PyInstaller
+# (Generated output and temp build files)
+*.spec
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# ------------------------
+# Editors & IDEs
+# ------------------------
+# VSCode
+.vscode/
+# PyCharm
+.idea/
+
+# Spyder (CRITICAL: Added this section back for you)
+.spyderproject
+.spyproject
+
+# ------------------------
+# OS Files
+# ------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*.swp
+*.swo
+
+# ------------------------
+# Misc
+# ------------------------
+*.tmp
+*.bak
+*.old
