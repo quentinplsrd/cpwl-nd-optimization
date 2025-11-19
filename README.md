@@ -15,7 +15,7 @@ Additionally, the environment includes built-in tools to visualize the resulting
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/cpwl-nd-optimization.git](https://github.com/your-username/cpwl-nd-optimization.git)
+    git clone [https://github.com/quentinplsrd/cpwl-nd-optimization.git](https://github.com/quentinplsrd/cpwl-nd-optimization.git)
     cd cpwl-nd-optimization
     ```
 
