@@ -948,7 +948,6 @@ if __name__ == "__main__":
         bounded_variables=True,
         time_limit_seconds=30)
     
-
     print("Extract and clean the CPWL results")
     variable_values = extract_values(variables, result, data=rescaled_data, clean_values=True)
     
