@@ -806,7 +806,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
             half_space_intersection = HalfspaceIntersection(half_space, interior_point)
             vertices = half_space_intersection.intersections
             if vertices.size > 0:
-                # order vertices CCW via their convex hull
+                # order vertices counterclockwise via their convex hull
                 convex_hull = ConvexHull(vertices)
                 # reorder the vertices
                 vertices = vertices[convex_hull.vertices,:]
@@ -833,19 +833,20 @@ def find_affine_pieces(variable_values, max_z=1e4):
 
 def illustrate_CPWL(data, variable_values, faces,
                     ax=None, size=5, colormap=None, alpha=0.4,
-                    exploded_factor=0., show_tick=True):
-    aPlus = variable_values['aPlus'] 
-    aMinus = variable_values['aMinus'] 
-    bPlus = variable_values['bPlus'] 
-    bMinus = variable_values['bMinus'] 
-    zPWLOpt = variable_values['zPWL'] 
-    d = aPlus.shape[1]
+                    exploded_factor=0., show_tick=True,
+                    show_points=True, show_error=True):
+    d = data.shape[1]-1
+    N = data.shape[0]
     if d==2:
         if ax is None:
             plt.figure(figsize = (8,8),facecolor="w")
             ax = plt.axes(projection="3d")
-        xFlat, yFlat, zFlat = np.split(data,3,axis=1)
-        ax_points = ax.scatter(xFlat, yFlat, zFlat, c='r', s=size)
+        if show_points:
+            ax_points = ax.scatter(*zip(*data), c='r', s=size)
+        if show_error:
+            z_PWL = evaluate_DC_CPWL_function(variable_values,data[:,:2])
+            for i in range(N):
+                ax.plot([data[i,0]]*2, [data[i,1]]*2, [data[i,2], z_PWL[i]],'k')
         if colormap is None:
             face_colors='C0'
         else:
@@ -856,29 +857,44 @@ def illustrate_CPWL(data, variable_values, faces,
         ax.add_collection3d(faceCollection)
         if not show_tick:
             ax.set_xlabel('x₁'); ax.set_ylabel('x₂'); ax.set_zlabel('z')
-            ax.set_xticklabels([]) 
-            ax.set_yticklabels([]) 
-            ax.set_zticklabels([])
+            ax.set_xticklabels([]); ax.set_yticklabels([]); ax.set_zticklabels([])
         plt.draw()
         return ax_points
     elif d==3:
-        halfSpacePlus = np.c_[aPlus,-np.ones(aPlus.shape[0]),bPlus]
-        halfSpaceMinus = np.c_[aMinus,-np.ones(aMinus.shape[0]),bMinus]
-        domainsPlus, domains_list_facesPlus = PolytopeIneqFromEqPlanes3D(halfSpacePlus,cuboidHeight=1000,threshold=1e-9)
-        domainsMinus, domains_list_facesMinus = PolytopeIneqFromEqPlanes3D(halfSpaceMinus,cuboidHeight=1000,threshold=1e-9)
         list_list_faces = []
-        list_list_vertices = []
-        for dPlus in domainsPlus:
-            for dMinus in domainsMinus:
-                vertices, faces = FaceIntersectionTwoPolyTopes(dPlus,dMinus)
-                if vertices is not None:
-                    list_list_faces.append(faces)
-                    list_list_vertices.append(vertices)
-        list_centroids = [np.mean(vertices,axis=0) for vertices in list_list_vertices]
-        list_vector_spread = [c - np.full(3,0.5) for c in list_centroids]
+        list_centroids = []
+        data_allocation_face = np.zeros(N, dtype=int)
+        for i, f in enumerate(faces):
+            list_face = []
+            hull = ConvexHull(f[:,:3])
+            points = hull.points
+            simplices = hull.simplices
+            equations = np.round(hull.equations,9)
+            # merge simplices with the same 3d equations
+            _, idx_uniques = np.unique(equations,axis=0,return_inverse=True)
+            nber_unique_eq = max(idx_uniques)+1
+            for eq_id in range(nber_unique_eq):
+                vertices_id_from_eq = np.unique(simplices[idx_uniques==eq_id,:])
+                face_points = points[vertices_id_from_eq,:]
+                # Sort vertices Counter-Clockwise
+                # Project to 2D by dropping the coord with max normal component
+                n = equations[np.where(idx_uniques == eq_id)[0][0], :3] # Face normal
+                drop_axis = np.argmax(np.abs(n))
+                proj = np.delete(face_points, drop_axis, axis=1) # Project to 2D
+                list_face.append(face_points[ConvexHull(proj).vertices])
+            list_list_faces.append(list_face)
+            list_centroids.append(points.mean(axis=0))
+            is_inside_hull = np.all(data[:,:3] @ equations[:,:-1].T + equations[:,-1] <= 1e-9, axis=1)
+            data_allocation_face[is_inside_hull] = i
+        # list_vector_spread = [c - np.full(3,0.5) for c in list_centroids]
+        center_centroid = np.array(list_centroids).mean(axis=0)
+        list_vector_spread = [c - center_centroid for c in list_centroids]
+        list_vector_spread = [c - center_centroid for c in list_centroids]
         list_list_faces_exploded = []
+        data_exploded = data[:,:3]*1
         for k in range(len(list_centroids)):
             list_list_faces_exploded.append([face + exploded_factor*list_vector_spread[k].reshape(-1,3) for face in list_list_faces[k]])
+            data_exploded[data_allocation_face==k,:] = data_exploded[data_allocation_face==k,:] + exploded_factor*list_vector_spread[k]
         N_domains = len(list_list_faces_exploded)
         if colormap is None:
             face_colors=['C0']*N_domains
@@ -888,14 +904,18 @@ def illustrate_CPWL(data, variable_values, faces,
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
+        if show_points:
+            ax_points = ax.scatter(*zip(*data_exploded), c='r', s=size)
+        if show_error:
+            z_PWL = evaluate_DC_CPWL_function(variable_values,data[:,:3])
+            errors = 500*abs(z_PWL - data[:,-1])
+            ax.scatter(*zip(*data_exploded), s=errors, marker='o', edgecolor='k', facecolor='none')
         for k in range(N_domains):
             domain = list_list_faces_exploded[k]
             ax.add_collection3d(Poly3DCollection(domain, alpha=alpha, facecolors=face_colors[k], edgecolor='k'))        
         if not show_tick:
-            ax.set_xlabel('x₁'); ax.set_ylabel('x₂')
-            ax.set_xticklabels([]) 
-            ax.set_yticklabels([]) 
-            ax.set_zticklabels([])
+            ax.set_xlabel('x₁'); ax.set_ylabel('x₂'); ax.set_zlabel('x₃')
+            ax.set_xticklabels([]); ax.set_yticklabels([]); ax.set_zticklabels([])
 
 
 
@@ -917,8 +937,15 @@ if __name__ == "__main__":
     data = (data.values)[:,-3:]
     data = data[~np.isnan(data).any(axis=1),:]
     
+    # 3D data
+    Naxis=4
+    x = np.array(np.meshgrid(*tuple([np.linspace(-1,1,Naxis)]*3))).reshape(3,-1).T
+    x = x + (0.5/(Naxis-1))*np.random.rand(x.shape[0],x.shape[1])
+    z = (x**2).sum(axis=1)
+    data = np.c_[x,z]
+    
     print("Define max error")
-    max_error = 0.02
+    max_error = 0.9
     
     print("Rescale data set to the space [1,2]^(d+1)")
     print("This particular rescaling is important to keep the MILP coefficients in a good range")
@@ -936,14 +963,14 @@ if __name__ == "__main__":
     
     print("Solve the MILP model")
     model, variables, result = solve_CPWL_approximation(
-        rescaled_data, max_error=rescaled_error, N_plus=2, N_minus=4,
-        objective='average error',
+        rescaled_data, max_error=rescaled_error, N_plus=9, N_minus=1,
+        objective='max error',
         big_M_constraint='tight', integer_feasibility_tolerance=1e-9,
         solver='GUROBI', default_big_M=1e6, tight_parameters=tight_parameters,
         fix_first_affine_piece=True, impose_d_plus_1_points_per_piece='f+ and f-',
         sort_affine_pieces=False,
         bounded_variables=True,
-        time_limit_seconds=60)
+        time_limit_seconds=180)
     
     print("Extract and clean the CPWL results")
     variable_values = extract_values(variables, result, data=rescaled_data, clean_values=True)
@@ -959,7 +986,7 @@ if __name__ == "__main__":
     
     illustrate_CPWL(rescaled_data-1, rescaled_variable_values, results["dc"]["faces"],
                         ax=None, size=5, colormap='tab20', alpha=0.4,
-                        exploded_factor=0., show_tick=False)
+                        exploded_factor=0.4, show_tick=False)
     
     print("Plot the affine pieces")
     face_colors='C0'
