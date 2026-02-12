@@ -5,27 +5,12 @@ Created on Mon Oct 27 13:40:10 2025
 @author: qploussard
 """
 
-import matplotlib
-import matplotlib.pyplot as plt
-matplotlib.rcParams["axes3d.mouserotationstyle"] = 'azel'
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from matplotlib.collections import PolyCollection
 
 from scipy.spatial import ConvexHull, HalfspaceIntersection
 from scipy.spatial.distance import pdist, cdist, squareform
 from scipy.optimize import linprog, linear_sum_assignment
-from scipy.linalg import null_space
-
-from itertools import product, combinations
-import time
-
-from typing import Optional, Literal
+from .data_scaler import rescale_equations, rescale_faces, rescale_polytopes
 import numpy as np
-import pandas as pd
-from datetime import timedelta
-from ortools.math_opt.python import mathopt, model_parameters
-
-import os
 
 
 def evaluate_DC_CPWL_function(CPWL_parameters,x):
@@ -143,6 +128,10 @@ def find_all_farthest_point_sampling(data,
         
 
 def add_points_to_solution(variable_values, new_points):
+    """
+    Add new points to the CPWL solution and update the associated variable values.
+    More like a prediction step
+    """
     
     aPlus = variable_values['aPlus']*1
     aMinus = variable_values['aMinus']*1
@@ -190,50 +179,6 @@ def add_points_to_solution(variable_values, new_points):
                                 'error': error}
     
     return extended_variable_values
-
-
-def rescale_faces(list_faces, slopes, intercepts):
-    
-    list_rescaled_faces = []
-    for face in list_faces:
-        list_rescaled_faces.append(face*slopes + intercepts)
-        
-    return list_rescaled_faces
-
-
-def rescale_equations(list_equations, slopes, intercepts):
-    
-    list_rescaled_equations = []
-    a_z = slopes[-1]
-    a_x = slopes[:-1]
-    b_z = intercepts[-1]
-    b_x = intercepts[:-1]
-    
-    for equation in list_equations:
-        coeff_piece = equation[:-1]
-        intercept_piece = equation[-1]
-        new_coeff_piece = coeff_piece*(a_z/a_x)
-        new_intercept_piece = intercept_piece*a_z + b_z - sum(coeff_piece*b_x/a_x)*a_z
-        list_rescaled_equations.append(np.r_[new_coeff_piece,new_intercept_piece])
-
-    return list_rescaled_equations
-
-
-def rescale_polytopes(list_polytopes, slopes, intercepts):
-    
-    list_rescaled_polytopes = []
-    a_x = slopes[:-1].reshape(1,-1)
-    b_x = intercepts[:-1].reshape(1,-1)
-    
-    for polytope in list_polytopes:
-        polytope_coeff = polytope[:,:-1]
-        polytope_intercept = polytope[:,[-1]]
-        new_polytope_coeff = (1/a_x)*polytope_coeff
-        new_polytope_intercept = polytope_intercept - polytope_coeff @ (b_x/a_x).T
-        list_rescaled_polytopes.append(np.c_[new_polytope_coeff,new_polytope_intercept])
-        
-    return list_rescaled_polytopes
-
 
 def find_affine_pieces(variable_values, max_z=1e4):
     
