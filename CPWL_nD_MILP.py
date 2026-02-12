@@ -25,10 +25,8 @@ import pandas as pd
 from datetime import timedelta
 from ortools.math_opt.python import mathopt, model_parameters
 
-# from .cpwl_optim.data_io.parse_data import *
-# from .data_io.parse_data import *
-
 import os
+from src.cpwl_optim.data_io.parse_data import *
 
 # os.environ["GRB_LICENSE_FILE"] = r"C:\Users\qploussard\gurobi.lic"
 # os.environ["GUROBI_HOME"] = r"C:\gurobi1203\win64"
@@ -1318,15 +1316,26 @@ def illustrate_CPWL(data, variable_values, faces,
 if __name__ == "__main__":
 
     print("Create data set")
-    path = "../data/crystal_hydro.xlsx"
-    
-    data = load_case1_data()
+    path = "./data/CY.xlsx"
+    Naxis=9
+    xy = np.array(np.meshgrid(np.linspace(-1,1,Naxis),np.linspace(-1,1,Naxis))).reshape(2,-1).T
+    xy = xy + (0.5/(Naxis-1))*np.random.rand(xy.shape[0],xy.shape[1])
+    # z = xy[:,0]**2 + xy[:,1]**2
+    z = xy[:,0]*np.sin(np.pi*xy[:,1]/2 + 0.5*np.pi)
+    # z = xy[:,0]**2 - xy[:,1]**2
+    data = np.c_[xy,z]
     
     # CY data
-    data = load_case2_data(path)
+    data = pd.read_excel(path ,index_col=0)
+    data = (data.values)[:,-3:]
+    data = data[~np.isnan(data).any(axis=1),:]
     
     # 3D data
-    data = load_case3_data()
+    Naxis=4
+    x = np.array(np.meshgrid(*tuple([np.linspace(-1,1,Naxis)]*3))).reshape(3,-1).T
+    x = x + (0.5/(Naxis-1))*np.random.rand(x.shape[0],x.shape[1])
+    z = (x**2).sum(axis=1)
+    data = np.c_[x,z]
     
     print("Define max error")
     max_error = 0.5
@@ -1340,7 +1349,6 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.scatter(*zip(*rescaled_data))
-    plt.show()
     
     print("Calculate all combinations of affine functions and the tight parameters")
     affine_set = find_affine_set(rescaled_data, rescaled_error)
