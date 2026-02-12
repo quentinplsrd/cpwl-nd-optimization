@@ -27,6 +27,8 @@ from ortools.math_opt.python import mathopt, model_parameters
 
 import os
 from src.cpwl_optim.data_io.parse_data import *
+from src.cpwl_optim.cpwl.data_scaler import rescale_data
+from src.cpwl_optim.cpwl.tight_regions import find_affine_set, get_tight_parameters
 
 # os.environ["GRB_LICENSE_FILE"] = r"C:\Users\qploussard\gurobi.lic"
 # os.environ["GUROBI_HOME"] = r"C:\gurobi1203\win64"
@@ -34,192 +36,6 @@ from src.cpwl_optim.data_io.parse_data import *
 # os.environ["GUROBI_HOME"] = r"C:\gurobi1300\win64"
 
 #%% functions
-
-def find_plane_equation(points_array):
-    """
-    Calculates the equation of a plane (ax + by + cz = d) given at least
-    three non-collinear points.
-
-    Args:
-        points_array (np.array): An Nx3 numpy array where N >= 3,
-                                 representing the points (x, y, z).
-
-    Returns:
-        tuple: A tuple (a, b, c, d) representing the plane equation coefficients.
-               Returns (None, None, None, None) if fewer than 3 points are provided.
-    """
-    if points_array.shape[0] < 3:
-        print("Error: At least 3 points are required to define a plane.")
-        return None, None, None, None
-
-    # Use the first three points for calculation
-    P1 = points_array[0]
-    P2 = points_array[1]
-    P3 = points_array[2]
-
-    # 1. Form two vectors in the plane
-    v1 = P3 - P1
-    v2 = P2 - P1
-
-    # 2. Calculate the normal vector (a, b, c) using the cross product
-    # The normal vector is perpendicular to the plane.
-    normal_vector = np.cross(v1, v2)
-    a, b, c = normal_vector
-
-    # Check for collinearity (cross product will be a zero vector)
-    if np.allclose(normal_vector, [0, 0, 0]):
-        print("Error: The first three points are collinear (lie on a line). Cannot define a unique plane.")
-        return None, None, None, None
-
-    # 3. Calculate the constant 'd' using the dot product with the first point P1
-    # d is equal to the dot product of the normal vector and any point on the plane.
-    d = np.dot(normal_vector, P1)
-
-    return np.array([a, b, c, -d])
-
-
-def rescale_data(data: np.ndarray,
-                 between_one_and_two: bool = True):
-
-    """Rescale the data set.
-
-    Args:
-      data: The data set to rescale. 
-      
-      between_one_and_two: If the data should be rescaled to the range [1,2] instead of [0,1].
-      
-    Returns:
-      The rescaled data, the transformation coefficients (slopes and intercepts).
-      
-      `data` can be recovered by applying: slopes*rescaled_data + intercepts
-      
-    """    
-    
-    # --- Type checks ---
-    if not isinstance(data, np.ndarray):
-        raise TypeError(f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
-    if data.ndim != 2:
-        raise ValueError(f"`data` must be a 2D array, got shape {data.shape}.")
-    if not isinstance(between_one_and_two, bool):
-        raise TypeError("`between_one_and_two` must be a boolean.")
-        
-    data_min = data.min(axis=0)
-    data_max = data.max(axis=0)
-    
-    rescaled_data = (data - data_min) / (data_max - data_min)
-    rescaled_data += 1*between_one_and_two
-        
-    slopes = data_max - data_min
-    intercepts = data_min - between_one_and_two*slopes
-    
-    return rescaled_data, slopes, intercepts
-
-
-def invert_transform(slopes, intercepts):
-    return 1/slopes, -intercepts/slopes
-
-
-# careful, the number of affine sets is equal to 'N choose d+1'*2^(d+1)
-def find_affine_set(data: np.ndarray,
-                    max_error: float):
-    
-    """Find the set of affine functions associated to every combination of d+1 points and every point-wise distance.
-
-    Args:
-      data: The data set. 
-      
-      max_error: The distance of each affine function to its associated points.
-      
-    Returns:
-      The list of affine functions as a 2D array. 
-      The rows represent the affine functions and the columns represent the linear coefficients of the affine functions.
-      The last column is the bias term.
-      
-    """    
-
-    # --- Type checks ---
-    if not isinstance(data, np.ndarray):
-        raise TypeError(f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
-    if data.ndim != 2:
-        raise ValueError(f"`data` must be 2D, got shape {data.shape}.")
-    if not isinstance(max_error, (float, np.floating)):
-        raise TypeError(f"`max_error` must be a float, got {type(max_error).__name__}.")
-
-    # --- Value checks ---
-    if max_error < 0:
-        raise ValueError("`max_error` must be nonnegative.")
-    
-    N_points, d_plus_1 = data.shape
-    d = d_plus_1 - 1
-    x = data[:,:-1]
-    x_1 = np.c_[x,np.ones(N_points)]
-    z = data[:,-1]
-    simplex_comb = np.array(list(combinations(range(N_points), d+1)))
-    list_matrix = x_1[simplex_comb,:]
-    list_z = z[simplex_comb]
-    list_inv_matrix = np.linalg.inv(list_matrix)
-    error_comb = max_error*np.array(list(product([-1, 1], repeat=(d+1))))
-    z_plus_errors = list_z[:, np.newaxis, :] + error_comb[np.newaxis, :, :]  # (n_simplex, n_error, d+1)
-    affine_set = np.einsum('sij,sej->sei', list_inv_matrix, z_plus_errors).reshape(-1, d+1)
-    
-    return affine_set
-
-
-def get_tight_parameters(data: np.ndarray,
-                         affine_set: np.ndarray,
-                         max_slope: Optional[float] = None) -> dict:
-    
-    """Calculate the tightening parameters to be used in the MILP CPWL approximation.
-
-    Args:
-      data: The data set. 
-      
-      affine_set: A set of affine functions.
-      
-      max_slope: A maximum slope to eliminate some affine functions.
-
-    Returns:
-      A dictionary of tightening parameters.
-      
-    """  
-    
-    # --- Type checks ---
-    if not isinstance(data, np.ndarray):
-        raise TypeError(f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
-    if data.ndim != 2:
-        raise ValueError(f"`data` must be 2D, got shape {data.shape}.")
-    if not isinstance(affine_set, np.ndarray):
-        raise TypeError(f"`affine_set` must be a numpy.ndarray, got {type(affine_set).__name__}.")
-    if affine_set.ndim != 2:
-        raise ValueError(f"`affine_set` must be 2D, got shape {affine_set.shape}.")
-    if max_slope is not None:
-        if not isinstance(max_slope, (int, float, np.floating)):
-            raise TypeError(f"`max_slope` must be a float or int, got {type(max_slope).__name__}.")
-
-    # --- Value checks ---
-    if max_slope is not None:
-        if max_slope <= 0:
-            raise ValueError("`max_slope` must be positive.")
-    
-    N_points = len(data)
-    x = data[:,:-1]
-    x_1 = np.c_[x,np.ones(N_points)]
-    affine_set_filtered = affine_set*1
-    if max_slope:
-        filter_slope = np.all(abs(affine_set[:,:-1])<=max_slope,axis=1)
-        affine_set_filtered = affine_set[filter_slope,:]
-    max_a_b = affine_set_filtered.max(axis=0)
-    min_a_b = affine_set_filtered.min(axis=0)
-    fx_n = np.matmul(affine_set_filtered,x_1.T)
-    max_fx_n = fx_n.max(axis=0)
-    min_fx_n = fx_n.min(axis=0)
-    tight_parameters = {'max_a_b': max_a_b,
-                        'min_a_b': min_a_b,
-                        'max_fx_n': max_fx_n,
-                        'min_fx_n': min_fx_n}
-    
-    return tight_parameters
-
 
 def calculate_CPWL_approximation(data: np.ndarray, max_error: float,
                                  N_plus: int, N_minus: int,
@@ -1316,36 +1132,24 @@ def illustrate_CPWL(data, variable_values, faces,
 if __name__ == "__main__":
 
     print("Create data set")
-    path = "./data/CY.xlsx"
-    Naxis=9
-    xy = np.array(np.meshgrid(np.linspace(-1,1,Naxis),np.linspace(-1,1,Naxis))).reshape(2,-1).T
-    xy = xy + (0.5/(Naxis-1))*np.random.rand(xy.shape[0],xy.shape[1])
-    # z = xy[:,0]**2 + xy[:,1]**2
-    z = xy[:,0]*np.sin(np.pi*xy[:,1]/2 + 0.5*np.pi)
-    # z = xy[:,0]**2 - xy[:,1]**2
-    data = np.c_[xy,z]
+    path = "./data/crystal_hydro.xlsx"
     
+    # data = load_case1_data()
     # CY data
-    data = pd.read_excel(path ,index_col=0)
-    data = (data.values)[:,-3:]
-    data = data[~np.isnan(data).any(axis=1),:]
-    
+    data = load_case2_data(path)
     # 3D data
-    Naxis=4
-    x = np.array(np.meshgrid(*tuple([np.linspace(-1,1,Naxis)]*3))).reshape(3,-1).T
-    x = x + (0.5/(Naxis-1))*np.random.rand(x.shape[0],x.shape[1])
-    z = (x**2).sum(axis=1)
-    data = np.c_[x,z]
+    # data = load_case3_data()
     
     print("Define max error")
     max_error = 0.5
     
     print("Rescale data set to the space [1,2]^(d+1)")
     print("This particular rescaling is important to keep the MILP coefficients in a good range")
-    rescaled_data, slopes, intercepts = rescale_data(data,between_one_and_two=True)
+    rescaled_data, slopes, intercepts = rescale_data(data)
     rescaled_error = max_error/slopes[-1]
     
     print("Plot rescaled data")
+    # Create data visualization function
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.scatter(*zip(*rescaled_data))
