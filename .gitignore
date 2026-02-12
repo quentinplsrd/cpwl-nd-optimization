@@ -81,8 +81,9 @@ Desktop.ini
 *.swo
 
 # ------------------------
-# Misc
+# Misc, including Jupyter Notebooks
 # ------------------------
 *.tmp
 *.bak
 *.old
+*.ipynb 

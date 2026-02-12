@@ -26,8 +26,10 @@ from datetime import timedelta
 from ortools.math_opt.python import mathopt, model_parameters
 
 import os
-os.environ["GRB_LICENSE_FILE"] = r"C:\Users\qploussard\gurobi.lic"
-os.environ["GUROBI_HOME"] = r"C:\gurobi1203\win64"
+
+# os.environ["GRB_LICENSE_FILE"] = r"C:\Users\qploussard\gurobi.lic"
+# os.environ["GUROBI_HOME"] = r"C:\gurobi1203\win64"
+
 # os.environ["GUROBI_HOME"] = r"C:\gurobi1300\win64"
 
 #%% functions
@@ -1313,6 +1315,7 @@ def illustrate_CPWL(data, variable_values, faces,
 if __name__ == "__main__":
 
     print("Create data set")
+    path = "./data/CY.xlsx"
     Naxis=9
     xy = np.array(np.meshgrid(np.linspace(-1,1,Naxis),np.linspace(-1,1,Naxis))).reshape(2,-1).T
     xy = xy + (0.5/(Naxis-1))*np.random.rand(xy.shape[0],xy.shape[1])
@@ -1322,7 +1325,7 @@ if __name__ == "__main__":
     data = np.c_[xy,z]
     
     # CY data
-    data = pd.read_excel(r"C:\Users\qploussard\Documents\CPWL nD\CY.xlsx",index_col=0)
+    data = pd.read_excel(path ,index_col=0)
     data = (data.values)[:,-3:]
     data = data[~np.isnan(data).any(axis=1),:]
     
