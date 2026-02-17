@@ -44,3 +44,4 @@ To run the main analysis script:
 
 ```bash
 python src/main_script.py
+```

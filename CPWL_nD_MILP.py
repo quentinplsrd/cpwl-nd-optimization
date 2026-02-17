@@ -4,7 +4,7 @@ Created on Mon Oct 27 13:40:10 2025
 
 @author: qploussard
 """
-
+# %%
 from src.cpwl_optim.optim.solver import solve_CPWL_model, extract_values
 from src.cpwl_optim.cpwl.tight_regions import find_affine_set, get_tight_parameters
 from src.cpwl_optim.cpwl.data_scaler import (
@@ -101,8 +101,7 @@ def calculate_CPWL_approximation(
 
     # check that the data is valid
     if not isinstance(data, np.ndarray):
-        raise TypeError(
-            f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
+        raise TypeError(f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
     if data.ndim != 2:
         raise TypeError(f"`data` must be 2D, got shape {data.shape}.")
     N_points, d_plus_1 = data.shape
@@ -129,8 +128,7 @@ def calculate_CPWL_approximation(
 
     # check the max error is valid
     if not isinstance(max_error, (float, np.floating)):
-        raise TypeError(
-            f"`max_error` must be a float, got {type(max_error).__name__}.")
+        raise TypeError(f"`max_error` must be a float, got {type(max_error).__name__}.")
     if max_error < 0:
         raise ValueError("`max_error` must be nonnegative.")
 
@@ -146,8 +144,7 @@ def calculate_CPWL_approximation(
     print(
         "This particular rescaling is important to keep the MILP coefficients in a good range"
     )
-    rescaled_data, slopes, intercepts = rescale_data(
-        data, between_one_and_two=True)
+    rescaled_data, slopes, intercepts = rescale_data(data, between_one_and_two=True)
     rescaled_error = max_error / slopes[-1]
 
     tight_parameters = None
@@ -250,19 +247,14 @@ def add_pieces_to_solution(variable_values, add_plus=0, add_minus=0):
     aMinus = variable_values["aMinus"] * 1
     bPlus = variable_values["bPlus"] * 1
     bMinus = variable_values["bMinus"] * 1
-    decPlus = variable_values["decPlus"] * \
-        1 if "decPlus" in variable_values else None
+    decPlus = variable_values["decPlus"] * 1 if "decPlus" in variable_values else None
     decMinus = (
-        variable_values["decMinus"] *
-        1 if "decMinus" in variable_values else None
+        variable_values["decMinus"] * 1 if "decMinus" in variable_values else None
     )
     zPWL = variable_values["zPWL"] * 1 if "zPWL" in variable_values else None
-    zPlus = variable_values["zPlus"] * \
-        1 if "zPlus" in variable_values else None
-    zMinus = variable_values["zMinus"] * \
-        1 if "zMinus" in variable_values else None
-    error = variable_values["error"] * \
-        1 if "error" in variable_values else None
+    zPlus = variable_values["zPlus"] * 1 if "zPlus" in variable_values else None
+    zMinus = variable_values["zMinus"] * 1 if "zMinus" in variable_values else None
+    error = variable_values["error"] * 1 if "error" in variable_values else None
 
     aPlus = np.r_[aPlus, np.repeat(aPlus[[-1], :], add_plus, axis=0)]
     aMinus = np.r_[aMinus, np.repeat(aMinus[[-1], :], add_minus, axis=0)]
@@ -304,8 +296,7 @@ def find_all_farthest_point_sampling(data, from_domain=True, index_initial_point
     number_of_visited_points = 1
 
     while number_of_visited_points < N:
-        distance_from_closest_point = matrix_dist[farthest_point_indices, :].min(
-            axis=0)
+        distance_from_closest_point = matrix_dist[farthest_point_indices, :].min(axis=0)
         new_farthest_point = distance_from_closest_point.argmax()
         farthest_point_indices.append(new_farthest_point)
         number_of_visited_points += 1
@@ -319,19 +310,14 @@ def add_points_to_solution(variable_values, new_points):
     aMinus = variable_values["aMinus"] * 1
     bPlus = variable_values["bPlus"] * 1
     bMinus = variable_values["bMinus"] * 1
-    decPlus = variable_values["decPlus"] * \
-        1 if "decPlus" in variable_values else None
+    decPlus = variable_values["decPlus"] * 1 if "decPlus" in variable_values else None
     decMinus = (
-        variable_values["decMinus"] *
-        1 if "decMinus" in variable_values else None
+        variable_values["decMinus"] * 1 if "decMinus" in variable_values else None
     )
     zPWL = variable_values["zPWL"] * 1 if "zPWL" in variable_values else None
-    zPlus = variable_values["zPlus"] * \
-        1 if "zPlus" in variable_values else None
-    zMinus = variable_values["zMinus"] * \
-        1 if "zMinus" in variable_values else None
-    error = variable_values["error"] * \
-        1 if "error" in variable_values else None
+    zPlus = variable_values["zPlus"] * 1 if "zPlus" in variable_values else None
+    zMinus = variable_values["zMinus"] * 1 if "zMinus" in variable_values else None
+    error = variable_values["error"] * 1 if "error" in variable_values else None
 
     N_plus = len(bPlus)
     N_minus = len(bMinus)
@@ -391,7 +377,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
     boundary_constraints[: (d + 1), : (d + 1)] = np.eye(d + 1)
     boundary_constraints[:d, d + 1] = -1.0
     boundary_constraints[d, d + 1] = -max_z
-    boundary_constraints[(d + 1): 2 * d + 1, :d] = -np.eye(d)
+    boundary_constraints[(d + 1) : 2 * d + 1, :d] = -np.eye(d)
 
     feasible_point = np.append(np.full(d, 0.5), 0.5 * max_z)
 
@@ -402,8 +388,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
     convex_component = []
     for half_space in [half_space_plus, half_space_minus]:
         half_space = np.r_[half_space, boundary_constraints]
-        half_space_intersection = HalfspaceIntersection(
-            half_space, feasible_point)
+        half_space_intersection = HalfspaceIntersection(half_space, feasible_point)
         vertices = half_space_intersection.intersections
         convex_hull = ConvexHull(vertices)
         equation_faces, face_id = np.unique(
@@ -412,11 +397,9 @@ def find_affine_pieces(variable_values, max_z=1e4):
         N_faces = len(equation_faces)
         vertices_to_discard = np.where(vertices[:, -1] > 0.5 * max_z)[0]
         simplices = convex_hull.simplices
-        simplices_to_discard = np.isin(
-            simplices, vertices_to_discard).any(axis=1)
+        simplices_to_discard = np.isin(simplices, vertices_to_discard).any(axis=1)
         faces_to_discard = np.unique(face_id[simplices_to_discard])
-        faces_to_keep = np.where(
-            ~np.isin(np.arange(N_faces), faces_to_discard))[0]
+        faces_to_keep = np.where(~np.isin(np.arange(N_faces), faces_to_discard))[0]
         set_polytopes, set_faces, set_equations = [], [], []
         for f in faces_to_keep:
             simplex_ids = np.where(face_id == f)[0]
@@ -425,16 +408,13 @@ def find_affine_pieces(variable_values, max_z=1e4):
             equations_domains = np.unique(convex_hull_domain.equations, axis=0)
             set_polytopes.append(equations_domains)
             # set_polytopes.append(convex_hull_domain.equations)
-            set_faces.append(
-                vertices[point_ids[convex_hull_domain.vertices], :])
+            set_faces.append(vertices[point_ids[convex_hull_domain.vertices], :])
             # A,b in z = A*x + b
-            linear_coeffs = np.delete(-equation_faces[f], -2) / \
-                equation_faces[f][-2]
+            linear_coeffs = np.delete(-equation_faces[f], -2) / equation_faces[f][-2]
             set_equations.append(linear_coeffs)
             # set_equations.append(equation_faces[f])
         convex_component.append(
-            {"polytopes": set_polytopes, "faces": set_faces,
-                "equations": set_equations}
+            {"polytopes": set_polytopes, "faces": set_faces, "equations": set_equations}
         )
 
     # find for the DC function
@@ -455,8 +435,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
             half_space = np.r_[polytope_plus, polytope_minus]
             # find a strictly interior point via LP:  A_ub x ≤ b_ub
             norm_vector = np.reshape(
-                np.linalg.norm(half_space[:, :-1],
-                               axis=1), (half_space.shape[0], 1)
+                np.linalg.norm(half_space[:, :-1], axis=1), (half_space.shape[0], 1)
             )
             A = np.c_[(half_space[:, :-1], norm_vector)]
             b = -half_space[:, -1:]
@@ -464,8 +443,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
             if not sol.success:
                 continue
             interior_point = (sol.x)[:-1]
-            half_space_intersection = HalfspaceIntersection(
-                half_space, interior_point)
+            half_space_intersection = HalfspaceIntersection(half_space, interior_point)
             vertices = half_space_intersection.intersections
             if vertices.size > 0:
                 # order vertices counterclockwise via their convex hull
@@ -536,8 +514,7 @@ def check_validity_affine_pieces(affine_pieces):
             )
             polytope = np.unique(polytope, axis=0)
             equation = affine_pieces[type_cpwl]["equations"][k]
-            equation_domain = np.unique(
-                ConvexHull(face[:, :-1]).equations, axis=0)
+            equation_domain = np.unique(ConvexHull(face[:, :-1]).equations, axis=0)
             dists = cdist(polytope, equation_domain, metric="cityblock")
             row_ind, col_ind = linear_sum_assignment(dists)
             equation_domain = equation_domain[col_ind, :]
@@ -552,136 +529,6 @@ def check_validity_affine_pieces(affine_pieces):
     return validity_report
 
 
-def illustrate_CPWL(
-    data,
-    variable_values,
-    faces,
-    ax=None,
-    size=5,
-    colormap=None,
-    alpha=0.4,
-    exploded_factor=0.0,
-    show_tick=True,
-    show_points=True,
-    show_error=True,
-):
-    d = data.shape[1] - 1
-    N = data.shape[0]
-    if d == 2:
-        if ax is None:
-            plt.figure(figsize=(8, 8), facecolor="w")
-            ax = plt.axes(projection="3d")
-        if show_points:
-            ax_points = ax.scatter(*zip(*data), c="r", s=size)
-        if show_error:
-            z_PWL = evaluate_DC_CPWL_function(variable_values, data[:, :2])
-            for i in range(N):
-                ax.plot([data[i, 0]] * 2, [data[i, 1]]
-                        * 2, [data[i, 2], z_PWL[i]], "k")
-        if colormap is None:
-            face_colors = "C0"
-        else:
-            cmap = matplotlib.colormaps[colormap]
-            num_faces = len(faces)
-            face_colors = face_colors = [
-                cmap(i / num_faces) for i in range(num_faces)]
-        faceCollection = Poly3DCollection(
-            faces, shade=False, facecolors=face_colors, edgecolors="k", alpha=alpha
-        )
-        ax.add_collection3d(faceCollection)
-        if not show_tick:
-            ax.set_xlabel("x₁")
-            ax.set_ylabel("x₂")
-            ax.set_zlabel("z")
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
-            ax.set_zticklabels([])
-        plt.draw()
-        return ax_points
-    elif d == 3:
-        list_list_faces = []
-        list_centroids = []
-        data_allocation_face = np.zeros(N, dtype=int)
-        for i, f in enumerate(faces):
-            list_face = []
-            hull = ConvexHull(f[:, :3])
-            points = hull.points
-            simplices = hull.simplices
-            equations = np.round(hull.equations, 9)
-            # merge simplices with the same 3d equations
-            _, idx_uniques = np.unique(equations, axis=0, return_inverse=True)
-            nber_unique_eq = max(idx_uniques) + 1
-            for eq_id in range(nber_unique_eq):
-                vertices_id_from_eq = np.unique(
-                    simplices[idx_uniques == eq_id, :])
-                face_points = points[vertices_id_from_eq, :]
-                # Sort vertices Counter-Clockwise
-                # Project to 2D by dropping the coord with max normal component
-                n = equations[np.where(idx_uniques == eq_id)[
-                    0][0], :3]  # Face normal
-                drop_axis = np.argmax(np.abs(n))
-                proj = np.delete(face_points, drop_axis,
-                                 axis=1)  # Project to 2D
-                list_face.append(face_points[ConvexHull(proj).vertices])
-            list_list_faces.append(list_face)
-            list_centroids.append(points.mean(axis=0))
-            is_inside_hull = np.all(
-                data[:, :3] @ equations[:, :-1].T + equations[:, -1] <= 1e-9, axis=1
-            )
-            data_allocation_face[is_inside_hull] = i
-        # list_vector_spread = [c - np.full(3,0.5) for c in list_centroids]
-        center_centroid = np.array(list_centroids).mean(axis=0)
-        list_vector_spread = [c - center_centroid for c in list_centroids]
-        list_list_faces_exploded = []
-        data_exploded = data[:, :3] * 1
-        for k in range(len(list_centroids)):
-            list_list_faces_exploded.append(
-                [
-                    face + exploded_factor *
-                    list_vector_spread[k].reshape(-1, 3)
-                    for face in list_list_faces[k]
-                ]
-            )
-            data_exploded[data_allocation_face == k, :] = (
-                data_exploded[data_allocation_face == k, :]
-                + exploded_factor * list_vector_spread[k]
-            )
-        N_domains = len(list_list_faces_exploded)
-        if colormap is None:
-            face_colors = ["C0"] * N_domains
-        else:
-            cmap = matplotlib.colormaps[colormap]
-            face_colors = [cmap(i / N_domains) for i in range(N_domains)]
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection="3d")
-        if show_points:
-            ax_points = ax.scatter(*zip(*data_exploded), c="r", s=size)
-        if show_error:
-            z_PWL = evaluate_DC_CPWL_function(variable_values, data[:, :3])
-            errors = 500 * abs(z_PWL - data[:, -1])
-            ax.scatter(
-                *zip(*data_exploded),
-                s=errors,
-                marker="o",
-                edgecolor="k",
-                facecolor="none",
-            )
-        for k in range(N_domains):
-            domain = list_list_faces_exploded[k]
-            ax.add_collection3d(
-                Poly3DCollection(
-                    domain, alpha=alpha, facecolors=face_colors[k], edgecolor="k"
-                )
-            )
-        if not show_tick:
-            ax.set_xlabel("x₁")
-            ax.set_ylabel("x₂")
-            ax.set_zlabel("x₃")
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
-            ax.set_zticklabels([])
-        return list_list_faces
 
 
 # %% Main execution
@@ -690,376 +537,323 @@ if __name__ == "__main__":
     print("Create data set")
     path = "./data/crystal_hydro.xlsx"
 
-    # data = load_case1_data()
-    # CY data
-    # data = load_case2_data(path)
-    # 3D data
-    data = load_case3_data()
+    for data_loader, arg, n_affine_pieces in [
+        (load_case1_data, None, [1, 3]),
+        (load_case2_data, path, [1, 3]),
+        (load_case3_data, None, [6, 1]),
+    ]:
+        if arg is not None:
+            data, descr = data_loader(arg)
+        else:
+            data, descr = data_loader()
 
-    max_error = 0.5
-    print(f"Max approximation error (predefined): {max_error}\n")
+        max_error = 0.5
+        n_plus, n_minus = n_affine_pieces
+        print(f"Max approximation error (predefined): {max_error}\n")
 
-    # print("Rescale data set to the space [1,2]^(d+1)")
-    # print("This particular rescaling is important to keep the MILP coefficients in a good range")
-    rescaled_data, slopes, intercepts = rescale_data(data)
-    rescaled_error = max_error / slopes[-1]
+        # print("Rescale data set to the space [1,2]^(d+1)")
+        # print("This particular rescaling is important to keep the MILP coefficients in a good range")
+        rescaled_data, slopes, intercepts = rescale_data(data)
+        rescaled_error = max_error / slopes[-1]
 
-    print("Plot rescaled data")
-    # Create data visualization function
-    fig = plt.figure()
-    ax = fig.add_subplot(projection="3d")
-    ax.scatter(*zip(*rescaled_data))
-    plt.show(block = False)
+        print("Plot rescaled data")
+        # Create data visualization function
+        fig = plt.figure()
+        ax = fig.add_subplot(projection="3d")
+        ax.scatter(*zip(*rescaled_data))
+        plt.savefig(f"./output/rescaled_data_{descr}.png", dpi=300, bbox_inches="tight")
 
-    print("Calculate all combinations of affine functions and the tight parameters")
-    affine_set = find_affine_set(rescaled_data, rescaled_error)
-    tight_parameters = get_tight_parameters(
-        rescaled_data, affine_set, max_slope=100)
-
-    print("Solve the MILP model")
-    model, variables, result = solve_CPWL_model(
-        rescaled_data,
-        max_error=rescaled_error,
-        N_plus=6,
-        N_minus=1,
-        big_M_constraint="tight",
-        solver="GUROBI",
-        default_big_M=1e6,
-        tight_parameters=tight_parameters,
-        fix_first_affine_piece=True,
-        impose_d_plus_1_points_per_piece="f+ and f-",
-        sort_affine_pieces=False,
-        bounded_variables=True,
-        time_limit_seconds=60,
-    )
-
-    print("Extract and clean the CPWL results")
-    variable_values = extract_values(
-        variables, result, data=rescaled_data, clean_values=True
-    )
-
-    print("Rescale the CPWL results to the space [0,1]^(d+1)")
-    d = data.shape[1] - 1
-    slopes2 = np.ones(d + 1)
-    intercepts2 = -np.ones(d + 1)
-    rescaled_variable_values = rescale_variable_values(
-        variable_values, slopes2, intercepts2
-    )
-
-    print("Calculate the affine pieces")
-    affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
-
-    # print("Test that equations are consistent with faces")
-    # Where do we need these?
-    # verify_dc = [
-    #     max(
-    #         abs(
-    #             np.matmul(
-    #                 np.insert(affine_pieces["dc"]
-    #                           ["faces"][k], d + 1, 1, axis=1),
-    #                 np.insert(affine_pieces["dc"]["equations"][k], -1, -1),
-    #             )
-    #         )
-    #     )
-    #     for k in range(len(affine_pieces["dc"]["faces"]))
-    # ]
-    # verify_minus = [
-    #     max(
-    #         abs(
-    #             np.matmul(
-    #                 np.insert(
-    #                     affine_pieces["convex_minus"]["faces"][k], d + 1, 1, axis=1
-    #                 ),
-    #                 np.insert(affine_pieces["convex_minus"]
-    #                           ["equations"][k], -1, -1),
-    #             )
-    #         )
-    #     )
-    #     for k in range(len(affine_pieces["convex_minus"]["faces"]))
-    # ]
-    # verify_plus = [
-    #     max(
-    #         abs(
-    #             np.matmul(
-    #                 np.insert(
-    #                     affine_pieces["convex_plus"]["faces"][k], d + 1, 1, axis=1
-    #                 ),
-    #                 np.insert(affine_pieces["convex_plus"]
-    #                           ["equations"][k], -1, -1),
-    #             )
-    #         )
-    #     )
-    #     for k in range(len(affine_pieces["convex_plus"]["faces"]))
-    # ]
-
-    print("Verify the convex hull of domain")
-    list_list_faces = illustrate_CPWL(
-        rescaled_data - 1,
-        rescaled_variable_values,
-        affine_pieces["dc"]["faces"],
-        ax=None,
-        size=5,
-        colormap="tab20",
-        alpha=0.4,
-        exploded_factor=0.4,
-        show_tick=False,
-    )
-    # equations from polytopes
-    verify_domains_dc = []
-    for k in range(len(affine_pieces["dc"]["polytopes"])):
-        mat1 = affine_pieces["dc"]["polytopes"][k]
-        mat2 = np.unique(
-            ConvexHull(
-                np.unique(np.vstack(list_list_faces[k]), axis=0)).equations,
-            axis=0,
+        print("Calculate all combinations of affine functions and the tight parameters")
+        affine_set = find_affine_set(rescaled_data, rescaled_error)
+        tight_parameters = get_tight_parameters(
+            rescaled_data, affine_set, max_slope=100
         )
-        diff = mat1 - mat2
-        verify_domains_dc.append(abs(diff).max())
 
-    # illustrate_CPWL(
-    #     rescaled_data - 1,
-    #     rescaled_variable_values,
-    #     affine_pieces["dc"]["faces"],
-    #     ax=None,
-    #     size=5,
-    #     colormap="tab20",
-    #     alpha=0.4,
-    #     exploded_factor=0.4,
-    #     show_tick=False,
-    # ) # No update in parameter or change in code
+        print("Solve the MILP model")
+        model, variables, result = solve_CPWL_model(
+            rescaled_data,
+            max_error=rescaled_error,
+            N_plus=n_plus,
+            N_minus=n_minus,
+            big_M_constraint="tight",
+            solver="HIGHS",
+            default_big_M=1e6,
+            tight_parameters=tight_parameters,
+            fix_first_affine_piece=True,
+            impose_d_plus_1_points_per_piece="f+ and f-",
+            sort_affine_pieces=False,
+            bounded_variables=True,
+            time_limit_seconds=60,
+        )
 
-    print("Rescale the CPWL results to the original data scale")
-    variable_values_original_scale = rescale_variable_values(
-        variable_values, slopes, intercepts
-    )
+        print("Extract and clean the CPWL results")
+        variable_values = extract_values(
+            variables, result, data=rescaled_data, clean_values=True
+        )
 
-    print("Plot the pieces in their original scaling")
-    _, slopes3, intercepts3 = rescale_data(data, between_one_and_two=False)
-    rescaled_faces = rescale_faces(
-        affine_pieces["dc"]["faces"], slopes3, intercepts3)
-    illustrate_CPWL(
-        data,
-        variable_values_original_scale,
-        rescaled_faces,
-        ax=None,
-        size=5,
-        colormap="tab20",
-        alpha=0.4,
-        exploded_factor=0.4,
-        show_tick=True,
-    )
+        print("Rescale the CPWL results to the space [0,1]^(d+1)")
+        d = data.shape[1] - 1
+        slopes2 = np.ones(d + 1)
+        intercepts2 = -np.ones(d + 1)
+        rescaled_variable_values = rescale_variable_values(
+            variable_values, slopes2, intercepts2
+        )
 
-    zPWL_eval = evaluate_DC_CPWL_function(
-        variable_values_original_scale, data[:, :-1])
+        print("Calculate the affine pieces")
+        affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
 
-    plt.plot(data[:, -1], zPWL_eval, "o", label="CPWL evaluation")
-    error_eval = abs(zPWL_eval - data[:, -1])
+        print("Verify the convex hull of domain")
+        list_list_faces = illustrate_CPWL(
+            rescaled_data - 1,
+            rescaled_variable_values,
+            affine_pieces["dc"]["faces"],
+            ax=None,
+            size=5,
+            colormap="tab20",
+            alpha=0.4,
+            exploded_factor=0.4,
+            show_tick=False,
+            savefig=True,
+            path_savefig=f"./output/rescaled_{descr}",
+        )
 
-    plt.show() # Plot figures without interupting code execution
+        print("Rescale the CPWL results to the original data scale")
+        variable_values_original_scale = rescale_variable_values(
+            variable_values, slopes, intercepts
+        )
+
+        print("Plot the pieces in their original scaling")
+        _, slopes3, intercepts3 = rescale_data(data, between_one_and_two=False)
+        rescaled_faces = rescale_faces(
+            affine_pieces["dc"]["faces"], slopes3, intercepts3
+        )
+        illustrate_CPWL(
+            data,
+            variable_values_original_scale,
+            rescaled_faces,
+            ax=None,
+            size=5,
+            colormap="tab20",
+            alpha=0.4,
+            exploded_factor=0.4,
+            show_tick=True,
+            savefig=True,
+            path_savefig=f"./output/original_{descr}",
+        )
+
+        zPWL_eval = evaluate_DC_CPWL_function(
+            variable_values_original_scale, data[:, :-1]
+        )
+
+        plt.figure(figsize=(6, 6), facecolor="w")
+        plt.plot(data[:, -1], zPWL_eval, "o", label="CPWL evaluation")
+        plt.savefig(f"./output/evaluation_{descr}.png", dpi=300, bbox_inches="tight")
+
+        error_eval = abs(zPWL_eval - data[:, -1])
+
+        # break
 
 # %% Iterative test, add planes
+# Warm start strategies to add planes iteratively, with the hope to find better solutions and/or solve faster.
+# We can add planes in the plus part, or in the minus part, or both. We can also add planes in a non-uniform way,
+# for example by adding more planes in the part of the domain where the error is higher.
 
 # N_plus, N_minus = 1,1
-max_error = 0.5
-extended_variable_values = None
+# max_error = 0.5
+# extended_variable_values = None
 
-N_plus_minus_list = np.array(
-    [[1, 1], [1, 2], [1, 3], [2, 3], [2, 4], [3, 4], [3, 5]])
-
-
-for k in range(len(N_plus_minus_list)):
-
-    N_plus = int(N_plus_minus_list[k][0])
-    N_minus = int(N_plus_minus_list[k][1])
-
-    if k > 0:
-        print("Add planes and warm-start")
-        add_plus = N_plus_minus_list[k][0] - N_plus_minus_list[k - 1][0]
-        add_minus = N_plus_minus_list[k][1] - N_plus_minus_list[k - 1][1]
-        extended_variable_values = add_pieces_to_solution(
-            variable_values, add_plus=add_plus, add_minus=add_minus
-        )
-
-    print(f"Iteration: {k}")
-
-    print("Calculate all combinations of affine functions and the tight parameters")
-    affine_set = find_affine_set(rescaled_data, max_error)
-    tight_parameters = get_tight_parameters(
-        rescaled_data, affine_set, max_slope=10)
-
-    print("Solve the MILP model")
-    model, variables, result = solve_CPWL_model(
-        rescaled_data,
-        max_error=max_error,
-        N_plus=N_plus,
-        N_minus=N_minus,
-        objective="average error",
-        big_M_constraint="tight",
-        integer_feasibility_tolerance=1e-9,
-        solver="HIGHS",
-        default_big_M=1e6,
-        tight_parameters=tight_parameters,
-        fix_first_affine_piece=True,
-        impose_d_plus_1_points_per_piece="f+ and f-",
-        sort_affine_pieces=False,
-        bounded_variables=True,
-        solution_hint=extended_variable_values,
-        time_limit_seconds=30,
-    )
-
-    print("Extract and clean the CPWL results")
-    variable_values = extract_values(
-        variables, result, data=rescaled_data, clean_values=True
-    )
-
-    max_error = variable_values["error"].max() + 1e-5
-
-    print("Rescale the CPWL results to the space [0,1]^(d+1)")
-    d = data.shape[1] - 1
-    slopes2 = np.ones(d + 1)
-    intercepts2 = -np.ones(d + 1)
-    rescaled_variable_values = rescale_variable_values(
-        variable_values, slopes2, intercepts2
-    )
-
-    print("Calculate the affine pieces")
-    affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
-
-    print("Plot the affine pieces")
-    face_colors = "C0"
-    plt.figure(figsize=(8, 8), facecolor="w")
-    ax = plt.axes(projection="3d")
-    faceCollection = Poly3DCollection(
-        affine_pieces["dc"]["faces"],
-        shade=False,
-        facecolors=face_colors,
-        edgecolors="k",
-        alpha=0.4,
-    )
-    ax.add_collection3d(faceCollection)
-    ax.scatter(*zip(*rescaled_data - 1))
+# N_plus_minus_list = np.array([[1, 1], [1, 2], [1, 3], [2, 3], [2, 4], [3, 4], [3, 5]])
 
 
-    # %% Iterative test, add points
+# for k in range(len(N_plus_minus_list)):
 
-    extended_variable_values = None
+#     N_plus = int(N_plus_minus_list[k][0])
+#     N_minus = int(N_plus_minus_list[k][1])
 
-    size_subset = 40
+#     if k > 0:
+#         print("Add planes and warm-start")
+#         add_plus = N_plus_minus_list[k][0] - N_plus_minus_list[k - 1][0]
+#         add_minus = N_plus_minus_list[k][1] - N_plus_minus_list[k - 1][1]
+#         extended_variable_values = add_pieces_to_solution(
+#             variable_values, add_plus=add_plus, add_minus=add_minus
+#         )
 
-    farthest_point_indices = find_all_farthest_point_sampling(
-        rescaled_data, from_domain=True, index_initial_point=0
-    )
+#     print(f"Iteration: {k}")
 
-    rescaled_data1 = rescaled_data[farthest_point_indices[:size_subset], :]
+#     print("Calculate all combinations of affine functions and the tight parameters")
+#     affine_set = find_affine_set(rescaled_data, max_error)
+#     tight_parameters = get_tight_parameters(rescaled_data, affine_set, max_slope=10)
 
-    print("Calculate all combinations of affine functions and the tight parameters")
-    affine_set = find_affine_set(rescaled_data1, rescaled_error)
-    tight_parameters = get_tight_parameters(
-        rescaled_data1, affine_set, max_slope=100)
+#     print("Solve the MILP model")
+#     model, variables, result = solve_CPWL_model(
+#         rescaled_data,
+#         max_error=max_error,
+#         N_plus=N_plus,
+#         N_minus=N_minus,
+#         objective="average error",
+#         big_M_constraint="tight",
+#         integer_feasibility_tolerance=1e-9,
+#         solver="HIGHS",
+#         default_big_M=1e6,
+#         tight_parameters=tight_parameters,
+#         fix_first_affine_piece=True,
+#         impose_d_plus_1_points_per_piece="f+ and f-",
+#         sort_affine_pieces=False,
+#         bounded_variables=True,
+#         solution_hint=extended_variable_values,
+#         time_limit_seconds=30,
+#     )
 
-    print("Solve the MILP model")
-    model, variables, result = solve_CPWL_model(
-        rescaled_data1,
-        max_error=rescaled_error,
-        N_plus=4,
-        N_minus=4,
-        objective="max error",
-        big_M_constraint="tight",
-        integer_feasibility_tolerance=1e-9,
-        solver="SCIP",
-        default_big_M=1e6,
-        tight_parameters=tight_parameters,
-        fix_first_affine_piece=True,
-        impose_d_plus_1_points_per_piece="f+ and f-",
-        sort_affine_pieces=False,
-        bounded_variables=True,
-        time_limit_seconds=300,
-    )
+#     print("Extract and clean the CPWL results")
+#     variable_values = extract_values(
+#         variables, result, data=rescaled_data, clean_values=True
+#     )
 
-    print("Extract and clean the CPWL results")
-    variable_values = extract_values(
-        variables, result, data=rescaled_data1, clean_values=True
-    )
+#     max_error = variable_values["error"].max() + 1e-5
 
-    print("Rescale the CPWL results to the space [0,1]^(d+1)")
-    d = data.shape[1] - 1
-    slopes2 = np.ones(d + 1)
-    intercepts2 = -np.ones(d + 1)
-    rescaled_variable_values = rescale_variable_values(
-        variable_values, slopes2, intercepts2
-    )
+#     print("Rescale the CPWL results to the space [0,1]^(d+1)")
+#     d = data.shape[1] - 1
+#     slopes2 = np.ones(d + 1)
+#     intercepts2 = -np.ones(d + 1)
+#     rescaled_variable_values = rescale_variable_values(
+#         variable_values, slopes2, intercepts2
+#     )
 
-    print("Calculate the affine pieces")
-    affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
+#     print("Calculate the affine pieces")
+#     affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
 
-    illustrate_CPWL(
-        rescaled_data1 - 1,
-        rescaled_variable_values,
-        affine_pieces["dc"]["faces"],
-        ax=None,
-        size=5,
-        colormap="tab20",
-        alpha=0.4,
-        exploded_factor=0.4,
-        show_tick=False,
-    )
+#     print("Plot the affine pieces")
+#     face_colors = "C0"
+#     plt.figure(figsize=(8, 8), facecolor="w")
+#     ax = plt.axes(projection="3d")
+#     faceCollection = Poly3DCollection(
+#         affine_pieces["dc"]["faces"],
+#         shade=False,
+#         facecolors=face_colors,
+#         edgecolors="k",
+#         alpha=0.4,
+#     )
+#     ax.add_collection3d(faceCollection)
+#     ax.scatter(*zip(*rescaled_data - 1))
 
-    extended_variable_values = add_points_to_solution(
-        variable_values, rescaled_data[farthest_point_indices[size_subset:], :]
-    )
-    rescaled_data2 = rescaled_data[farthest_point_indices, :]
+#     # %% Iterative test, add more data points
 
-    print("Calculate all combinations of affine functions and the tight parameters")
-    affine_set = find_affine_set(rescaled_data2, rescaled_error)
-    tight_parameters = get_tight_parameters(
-        rescaled_data2, affine_set, max_slope=100)
+# extended_variable_values = None
 
-    print("Solve the MILP model")
-    model, variables, result = solve_CPWL_model(
-        rescaled_data2,
-        max_error=rescaled_error,
-        N_plus=4,
-        N_minus=4,
-        objective="max error",
-        big_M_constraint="tight",
-        integer_feasibility_tolerance=1e-9,
-        solver="SCIP",
-        default_big_M=1e6,
-        tight_parameters=tight_parameters,
-        fix_first_affine_piece=True,
-        impose_d_plus_1_points_per_piece="f+ and f-",
-        sort_affine_pieces=False,
-        bounded_variables=True,
-        solution_hint=extended_variable_values,
-        time_limit_seconds=60,
-    )
+# size_subset = 40
 
-    print("Extract and clean the CPWL results")
-    variable_values = extract_values(
-        variables, result, data=rescaled_data2, clean_values=True
-    )
+# farthest_point_indices = find_all_farthest_point_sampling(
+#     rescaled_data, from_domain=True, index_initial_point=0
+# )
 
-    print("Rescale the CPWL results to the space [0,1]^(d+1)")
-    d = data.shape[1] - 1
-    slopes2 = np.ones(d + 1)
-    intercepts2 = -np.ones(d + 1)
-    rescaled_variable_values = rescale_variable_values(
-        variable_values, slopes2, intercepts2
-    )
+# rescaled_data1 = rescaled_data[farthest_point_indices[:size_subset], :]
 
-    print("Calculate the affine pieces")
-    affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
+# print("Calculate all combinations of affine functions and the tight parameters")
+# affine_set = find_affine_set(rescaled_data1, rescaled_error)
+# tight_parameters = get_tight_parameters(rescaled_data1, affine_set, max_slope=100)
 
-    illustrate_CPWL(
-        rescaled_data2 - 1,
-        rescaled_variable_values,
-        affine_pieces["dc"]["faces"],
-        ax=None,
-        size=5,
-        colormap="tab20",
-        alpha=0.4,
-        exploded_factor=0.4,
-        show_tick=False,
-    )
+# print("Solve the MILP model")
+# model, variables, result = solve_CPWL_model(
+#     rescaled_data1,
+#     max_error=rescaled_error,
+#     N_plus=4,
+#     N_minus=4,
+#     objective="max error",
+#     big_M_constraint="tight",
+#     integer_feasibility_tolerance=1e-9,
+#     solver="SCIP",
+#     default_big_M=1e6,
+#     tight_parameters=tight_parameters,
+#     fix_first_affine_piece=True,
+#     impose_d_plus_1_points_per_piece="f+ and f-",
+#     sort_affine_pieces=False,
+#     bounded_variables=True,
+#     time_limit_seconds=300,
+# )
 
-plt.show()
+# print("Extract and clean the CPWL results")
+# variable_values = extract_values(
+#     variables, result, data=rescaled_data1, clean_values=True
+# )
+
+# print("Rescale the CPWL results to the space [0,1]^(d+1)")
+# d = data.shape[1] - 1
+# slopes2 = np.ones(d + 1)
+# intercepts2 = -np.ones(d + 1)
+# rescaled_variable_values = rescale_variable_values(
+#     variable_values, slopes2, intercepts2
+# )
+
+# print("Calculate the affine pieces")
+# affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
+
+# illustrate_CPWL(
+#     rescaled_data1 - 1,
+#     rescaled_variable_values,
+#     affine_pieces["dc"]["faces"],
+#     ax=None,
+#     size=5,
+#     colormap="tab20",
+#     alpha=0.4,
+#     exploded_factor=0.4,
+#     show_tick=False,
+# )
+
+# extended_variable_values = add_points_to_solution(
+#     variable_values, rescaled_data[farthest_point_indices[size_subset:], :]
+# )
+# rescaled_data2 = rescaled_data[farthest_point_indices, :]
+
+# print("Calculate all combinations of affine functions and the tight parameters")
+# affine_set = find_affine_set(rescaled_data2, rescaled_error)
+# tight_parameters = get_tight_parameters(rescaled_data2, affine_set, max_slope=100)
+
+# print("Solve the MILP model")
+# model, variables, result = solve_CPWL_model(
+#     rescaled_data2,
+#     max_error=rescaled_error,
+#     N_plus=4,
+#     N_minus=4,
+#     objective="max error",
+#     big_M_constraint="tight",
+#     integer_feasibility_tolerance=1e-9,
+#     solver="SCIP",
+#     default_big_M=1e6,
+#     tight_parameters=tight_parameters,
+#     fix_first_affine_piece=True,
+#     impose_d_plus_1_points_per_piece="f+ and f-",
+#     sort_affine_pieces=False,
+#     bounded_variables=True,
+#     solution_hint=extended_variable_values,
+#     time_limit_seconds=60,
+# )
+
+# print("Extract and clean the CPWL results")
+# variable_values = extract_values(
+#     variables, result, data=rescaled_data2, clean_values=True
+# )
+
+# print("Rescale the CPWL results to the space [0,1]^(d+1)")
+# d = data.shape[1] - 1
+# slopes2 = np.ones(d + 1)
+# intercepts2 = -np.ones(d + 1)
+# rescaled_variable_values = rescale_variable_values(
+#     variable_values, slopes2, intercepts2
+# )
+
+# print("Calculate the affine pieces")
+# affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
+
+# illustrate_CPWL(
+#     rescaled_data2 - 1,
+#     rescaled_variable_values,
+#     affine_pieces["dc"]["faces"],
+#     ax=None,
+#     size=5,
+#     colormap="tab20",
+#     alpha=0.4,
+#     exploded_factor=0.4,
+#     show_tick=False,
+# )
+
+# plt.show()
