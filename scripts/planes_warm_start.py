@@ -147,4 +147,4 @@ for k in range(len(N_plus_minus_list)):
     ax.add_collection3d(faceCollection)
     ax.scatter(*zip(*rescaled_data - 1))
 
-    plt.savefig(f"..output/planes_warm_start_{N_plus}_{N_minus}.png", dpi=300)
+    plt.savefig(f"../output/planes_warm_start_{N_plus}_{N_minus}.png", dpi=300)

@@ -16,6 +16,7 @@ ENV/
 office/
 testenv/
 .venv-win/
+.venv-mac/
 
 # Distribution / packaging
 build/
@@ -96,3 +97,4 @@ Desktop.ini
 *.lock
 
 Notes.md
+CPWL_nD_MILP.py

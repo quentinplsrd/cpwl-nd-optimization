@@ -5,10 +5,6 @@ Created on Mon Oct 27 13:40:10 2025
 @author: qploussard
 """
 
-import matplotlib
-import matplotlib.pyplot as plt
-matplotlib.rcParams["axes3d.mouserotationstyle"] = 'azel'
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from typing import Optional, Literal
 import numpy as np
@@ -479,89 +475,3 @@ def extract_values(variables, result, data=None, clean_values=False):
 
     return variable_values
 
-
-def illustrate_CPWL(data, variable_values, faces,
-                    ax=None, size=5, colormap=None, alpha=0.4,
-                    exploded_factor=0., show_tick=True,
-                    show_points=True, show_error=True):
-    d = data.shape[1]-1
-    N = data.shape[0]
-    if d==2:
-        if ax is None:
-            plt.figure(figsize = (8,8),facecolor="w")
-            ax = plt.axes(projection="3d")
-        if show_points:
-            ax_points = ax.scatter(*zip(*data), c='r', s=size)
-        if show_error:
-            z_PWL = evaluate_DC_CPWL_function(variable_values,data[:,:2])
-            for i in range(N):
-                ax.plot([data[i,0]]*2, [data[i,1]]*2, [data[i,2], z_PWL[i]],'k')
-        if colormap is None:
-            face_colors='C0'
-        else:
-            cmap = matplotlib.colormaps[colormap]
-            num_faces = len(faces)
-            face_colors = face_colors = [cmap(i / num_faces) for i in range(num_faces)]
-        faceCollection = Poly3DCollection(faces,shade=False,facecolors=face_colors,edgecolors='k',alpha=alpha)
-        ax.add_collection3d(faceCollection)
-        if not show_tick:
-            ax.set_xlabel('x₁'); ax.set_ylabel('x₂'); ax.set_zlabel('z')
-            ax.set_xticklabels([]); ax.set_yticklabels([]); ax.set_zticklabels([])
-        plt.draw()
-        return ax_points
-    elif d==3:
-        list_list_faces = []
-        list_centroids = []
-        data_allocation_face = np.zeros(N, dtype=int)
-        for i, f in enumerate(faces):
-            list_face = []
-            hull = ConvexHull(f[:,:3])
-            points = hull.points
-            simplices = hull.simplices
-            equations = np.round(hull.equations,9)
-            # merge simplices with the same 3d equations
-            _, idx_uniques = np.unique(equations,axis=0,return_inverse=True)
-            nber_unique_eq = max(idx_uniques)+1
-            for eq_id in range(nber_unique_eq):
-                vertices_id_from_eq = np.unique(simplices[idx_uniques==eq_id,:])
-                face_points = points[vertices_id_from_eq,:]
-                # Sort vertices Counter-Clockwise
-                # Project to 2D by dropping the coord with max normal component
-                n = equations[np.where(idx_uniques == eq_id)[0][0], :3] # Face normal
-                drop_axis = np.argmax(np.abs(n))
-                proj = np.delete(face_points, drop_axis, axis=1) # Project to 2D
-                list_face.append(face_points[ConvexHull(proj).vertices])
-            list_list_faces.append(list_face)
-            list_centroids.append(points.mean(axis=0))
-            is_inside_hull = np.all(data[:,:3] @ equations[:,:-1].T + equations[:,-1] <= 1e-9, axis=1)
-            data_allocation_face[is_inside_hull] = i
-        # list_vector_spread = [c - np.full(3,0.5) for c in list_centroids]
-        center_centroid = np.array(list_centroids).mean(axis=0)
-        list_vector_spread = [c - center_centroid for c in list_centroids]
-        list_list_faces_exploded = []
-        data_exploded = data[:,:3]*1
-        for k in range(len(list_centroids)):
-            list_list_faces_exploded.append([face + exploded_factor*list_vector_spread[k].reshape(-1,3) for face in list_list_faces[k]])
-            data_exploded[data_allocation_face==k,:] = data_exploded[data_allocation_face==k,:] + exploded_factor*list_vector_spread[k]
-        N_domains = len(list_list_faces_exploded)
-        if colormap is None:
-            face_colors=['C0']*N_domains
-        else:
-            cmap = matplotlib.colormaps[colormap]
-            face_colors = [cmap(i / N_domains) for i in range(N_domains)]
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-        if show_points:
-            ax_points = ax.scatter(*zip(*data_exploded), c='r', s=size)
-        if show_error:
-            z_PWL = evaluate_DC_CPWL_function(variable_values,data[:,:3])
-            errors = 500*abs(z_PWL - data[:,-1])
-            ax.scatter(*zip(*data_exploded), s=errors, marker='o', edgecolor='k', facecolor='none')
-        for k in range(N_domains):
-            domain = list_list_faces_exploded[k]
-            ax.add_collection3d(Poly3DCollection(domain, alpha=alpha, facecolors=face_colors[k], edgecolor='k'))        
-        if not show_tick:
-            ax.set_xlabel('x₁'); ax.set_ylabel('x₂'); ax.set_zlabel('x₃')
-            ax.set_xticklabels([]); ax.set_yticklabels([]); ax.set_zticklabels([])
-        return list_list_faces

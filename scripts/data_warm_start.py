@@ -90,9 +90,6 @@ rescaled_error = max_error / slopes[-1]
 
 max_error = 0.5
 extended_variable_values = None
-
-extended_variable_values = None
-
 size_subset = 40
 
 farthest_point_indices = find_all_farthest_point_sampling(
