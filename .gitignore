@@ -94,7 +94,6 @@ Desktop.ini
 *.bak
 *.old
 *.ipynb 
-*.lock
 
 Notes.md
 CPWL_nD_MILP.py

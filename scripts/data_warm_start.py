@@ -98,11 +98,11 @@ farthest_point_indices = find_all_farthest_point_sampling(
 
 rescaled_data1 = rescaled_data[farthest_point_indices[:size_subset], :]
 
-print("Calculate all combinations of affine functions and the tight parameters")
+# print("Calculate all combinations of affine functions and the tight parameters")
 affine_set = find_affine_set(rescaled_data1, rescaled_error)
 tight_parameters = get_tight_parameters(rescaled_data1, affine_set, max_slope=100)
 
-print("Solve the MILP model")
+print("Solving the MILP model...")
 model, variables, result = solve_CPWL_model(
     rescaled_data1,
     max_error=rescaled_error,
@@ -121,12 +121,12 @@ model, variables, result = solve_CPWL_model(
     time_limit_seconds=300,
 )
 
-print("Extract and clean the CPWL results")
+# print("Extract and clean the CPWL results")
 variable_values = extract_values(
     variables, result, data=rescaled_data1, clean_values=True
 )
 
-print("Rescale the CPWL results to the space [0,1]^(d+1)")
+# print("Rescale the CPWL results to the space [0,1]^(d+1)")
 d = data.shape[1] - 1
 slopes2 = np.ones(d + 1)
 intercepts2 = -np.ones(d + 1)
@@ -134,7 +134,7 @@ rescaled_variable_values = rescale_variable_values(
     variable_values, slopes2, intercepts2
 )
 
-print("Calculate the affine pieces")
+# print("Calculate the affine pieces")
 affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
 
 illustrate_CPWL(
@@ -154,11 +154,11 @@ extended_variable_values = add_points_to_solution(
 )
 rescaled_data2 = rescaled_data[farthest_point_indices, :]
 
-print("Calculate all combinations of affine functions and the tight parameters")
+# print("Calculate all combinations of affine functions and the tight parameters")
 affine_set = find_affine_set(rescaled_data2, rescaled_error)
 tight_parameters = get_tight_parameters(rescaled_data2, affine_set, max_slope=100)
 
-print("Solve the MILP model")
+print("Solving the MILP model...")
 model, variables, result = solve_CPWL_model(
     rescaled_data2,
     max_error=rescaled_error,
@@ -178,12 +178,12 @@ model, variables, result = solve_CPWL_model(
     time_limit_seconds=60,
 )
 
-print("Extract and clean the CPWL results")
+# print("Extract and clean the CPWL results")
 variable_values = extract_values(
     variables, result, data=rescaled_data2, clean_values=True
 )
 
-print("Rescale the CPWL results to the space [0,1]^(d+1)")
+# print("Rescale the CPWL results to the space [0,1]^(d+1)")
 d = data.shape[1] - 1
 slopes2 = np.ones(d + 1)
 intercepts2 = -np.ones(d + 1)
@@ -191,7 +191,7 @@ rescaled_variable_values = rescale_variable_values(
     variable_values, slopes2, intercepts2
 )
 
-print("Calculate the affine pieces")
+# print("Calculate the affine pieces")
 affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
 
 illustrate_CPWL(

@@ -6,6 +6,7 @@ Created on Mon Oct 27 13:40:10 2025
 """
 
 
+from typing import Literal
 from scipy.spatial import ConvexHull, HalfspaceIntersection
 from scipy.spatial.distance import pdist, cdist, squareform
 from scipy.optimize import linprog, linear_sum_assignment
@@ -16,12 +17,19 @@ from .data_scaler import rescale_equations, rescale_faces, rescale_polytopes
 import numpy as np
 
 
-def evaluate_DC_CPWL_function(CPWL_parameters, x):
+def evaluate_DC_CPWL_function(cpwl_param: dict, x: np.ndarray) -> np.ndarray:
 
-    aPlus = CPWL_parameters["aPlus"] * 1
-    aMinus = CPWL_parameters["aMinus"] * 1
-    bPlus = CPWL_parameters["bPlus"] * 1
-    bMinus = CPWL_parameters["bMinus"] * 1
+    if not isinstance(cpwl_param, dict):
+        raise TypeError(
+            f"`cpwl_param` must be a dictionary, got {type(cpwl_param).__name__}."
+        )
+    # if not isinstance(x, np.ndarray):
+    #     raise TypeError(f"`x` must be a numpy.ndarray, got {type(x).__name__}.")
+
+    aPlus = cpwl_param["aPlus"] * 1
+    aMinus = cpwl_param["aMinus"] * 1
+    bPlus = cpwl_param["bPlus"] * 1
+    bMinus = cpwl_param["bMinus"] * 1
 
     zPlus = (np.matmul(aPlus, x.T) + bPlus.reshape(-1, 1)).max(axis=0)
     zMinus = (np.matmul(aMinus, x.T) + bMinus.reshape(-1, 1)).max(axis=0)
@@ -30,7 +38,20 @@ def evaluate_DC_CPWL_function(CPWL_parameters, x):
     return zPWL
 
 
-def find_all_farthest_point_sampling(data, from_domain=True, index_initial_point=0):
+def find_all_farthest_point_sampling(
+    data: np.ndarray, from_domain: bool = True, index_initial_point: int = 0
+) -> list:
+    # Type checks
+    if not isinstance(data, np.ndarray):
+        raise TypeError(f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
+    # if not isinstance(from_domain, bool):
+    #     raise TypeError(
+    #         f"`from_domain` must be a boolean, got {type(from_domain).__name__}."
+    #     )
+    if not isinstance(index_initial_point, (int, np.integer)):
+        raise TypeError(
+            f"`index_initial_point` must be an integer, got {type(index_initial_point).__name__}."
+        )
 
     N = data.shape[0]
     if from_domain:
@@ -55,12 +76,16 @@ def find_all_farthest_point_sampling(data, from_domain=True, index_initial_point
     return farthest_point_indices
 
 
-def find_affine_pieces(variable_values, max_z=1e4):
+def find_affine_pieces(var_dict: dict, max_z=1e4):
+    if not isinstance(var_dict, dict):
+        raise TypeError(
+            f"`var_dict` must be a dictionary, got {type(var_dict).__name__}."
+        )
 
-    aPlus = variable_values["aPlus"] * 1
-    aMinus = variable_values["aMinus"] * 1
-    bPlus = variable_values["bPlus"] * 1
-    bMinus = variable_values["bMinus"] * 1
+    aPlus = var_dict["aPlus"] * 1
+    aMinus = var_dict["aMinus"] * 1
+    bPlus = var_dict["bPlus"] * 1
+    bMinus = var_dict["bMinus"] * 1
 
     N_plus = len(bPlus)
     N_minus = len(bMinus)
@@ -151,7 +176,7 @@ def find_affine_pieces(variable_values, max_z=1e4):
                 equations_domains = np.unique(polytope, axis=0)
                 set_polytopes.append(equations_domains)
                 # set_polytopes.append(polytope)
-                z_values = evaluate_DC_CPWL_function(variable_values, vertices)
+                z_values = evaluate_DC_CPWL_function(var_dict, vertices)
                 face = np.c_[vertices, z_values]
                 set_faces.append(face)
                 set_equations.append(
@@ -171,7 +196,11 @@ def find_affine_pieces(variable_values, max_z=1e4):
     return affine_pieces
 
 
-def transform_affine_pieces(affine_pieces, slopes, intercepts):
+def transform_affine_pieces(affine_pieces: dict, slopes, intercepts):
+    if not isinstance(affine_pieces, dict):
+        raise TypeError(
+            f"`affine_pieces` must be a dictionary, got {type(affine_pieces).__name__}."
+        )
 
     transformed_affine_pieces = {}
 
@@ -196,7 +225,11 @@ def transform_affine_pieces(affine_pieces, slopes, intercepts):
     return transformed_affine_pieces
 
 
-def check_validity_affine_pieces(affine_pieces):
+def check_validity_affine_pieces(affine_pieces: dict):
+    if not isinstance(affine_pieces, dict):
+        raise TypeError(
+            f"`affine_pieces` must be a dictionary, got {type(affine_pieces).__name__}."
+        )
 
     validity_report = {}
     d = affine_pieces["dc"]["faces"][0].shape[1] - 1
@@ -227,21 +260,41 @@ def check_validity_affine_pieces(affine_pieces):
 
 
 def illustrate_CPWL(
-    data,
-    variable_values,
-    faces,
-    ax=None,
-    size=5,
-    colormap=None,
-    alpha=0.4,
-    exploded_factor=0.0,
-    show_tick=True,
-    show_points=True,
-    show_error=True,
-    savefig=False,
-    path_savefig="function_description",
-    fig_format="png",
+    data: np.ndarray,
+    var_dict: dict,
+    faces: list(np.ndarray),
+    ax: matplotlib.axes.Axes = None,
+    size: float = 5,
+    colormap: str | None = None,
+    alpha: float = 0.4,
+    exploded_factor: float = 0.0,
+    show_tick: bool = True,
+    show_points: bool = True,
+    show_error: bool = True,
+    savefig: bool = False,
+    path_savefig: str = "function_description",
+    fig_format: Literal["jpg", "png", "jpeg", "pdf", "svg"] = "png",
 ):
+    # Type checks
+    if not isinstance(data, np.ndarray):
+        raise TypeError(f"`data` must be a numpy.ndarray, got {type(data).__name__}.")
+    if not isinstance(var_dict, dict):
+        raise TypeError(
+            f"`var_dict` must be a dictionary, got {type(var_dict).__name__}."
+        )
+    if not isinstance(faces, list) or not all(
+        isinstance(face, np.ndarray) for face in faces
+    ):
+        raise TypeError(
+            f"`faces` must be a list of (N, 3) arrays, got {type(faces).__name__} with elements of type {[type(face).__name__ for face in faces]}."
+        )
+    if alpha < 0 or alpha > 1:
+        raise ValueError(f"`alpha` must be between 0 and 1, got {alpha}.")
+    if exploded_factor < 0:
+        raise ValueError(
+            f"`exploded_factor` must be non-negative, got {exploded_factor}."
+        )
+
     d = data.shape[1] - 1
     N = data.shape[0]
     if d == 2:
@@ -251,7 +304,7 @@ def illustrate_CPWL(
         if show_points:
             ax_points = ax.scatter(*zip(*data), c="r", s=size)
         if show_error:
-            z_PWL = evaluate_DC_CPWL_function(variable_values, data[:, :2])
+            z_PWL = evaluate_DC_CPWL_function(var_dict, data[:, :2])
             for i in range(N):
                 ax.plot([data[i, 0]] * 2, [data[i, 1]] * 2, [data[i, 2], z_PWL[i]], "k")
         if colormap is None:
@@ -335,7 +388,7 @@ def illustrate_CPWL(
         if show_points:
             ax_points = ax.scatter(*zip(*data_exploded), c="r", s=size)
         if show_error:
-            z_PWL = evaluate_DC_CPWL_function(variable_values, data[:, :3])
+            z_PWL = evaluate_DC_CPWL_function(var_dict, data[:, :3])
             errors = 500 * abs(z_PWL - data[:, -1])
             ax.scatter(
                 *zip(*data_exploded),

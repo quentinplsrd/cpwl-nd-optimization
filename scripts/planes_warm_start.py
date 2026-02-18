@@ -82,20 +82,20 @@ for k in range(len(N_plus_minus_list)):
     N_minus = int(N_plus_minus_list[k][1])
 
     if k > 0:
-        print("Add planes and warm-start")
+        # print("Add planes and warm-start")
         add_plus = N_plus_minus_list[k][0] - N_plus_minus_list[k - 1][0]
         add_minus = N_plus_minus_list[k][1] - N_plus_minus_list[k - 1][1]
         extended_variable_values = add_pieces_to_solution(
             variable_values, add_plus=add_plus, add_minus=add_minus
         )
 
-    print(f"Iteration: {k}")
+    print(f"Iteration: {k} \t|\t N_plus: {N_plus} \t|\t N_minus: {N_minus}")
 
-    print("Calculate all combinations of affine functions and the tight parameters")
+    # print("Calculate all combinations of affine functions and the tight parameters")
     affine_set = find_affine_set(rescaled_data, max_error)
     tight_parameters = get_tight_parameters(rescaled_data, affine_set, max_slope=10)
 
-    print("Solve the MILP model")
+    print("Solving the MILP model...")
     model, variables, result = solve_CPWL_model(
         rescaled_data,
         max_error=max_error,
@@ -115,14 +115,14 @@ for k in range(len(N_plus_minus_list)):
         time_limit_seconds=30,
     )
 
-    print("Extract and clean the CPWL results")
+    # print("Extract and clean the CPWL results")
     variable_values = extract_values(
         variables, result, data=rescaled_data, clean_values=True
     )
 
     max_error = variable_values["error"].max() + 1e-5
 
-    print("Rescale the CPWL results to the space [0,1]^(d+1)")
+    # print("Rescale the CPWL results to the space [0,1]^(d+1)")
     d = data.shape[1] - 1
     slopes2 = np.ones(d + 1)
     intercepts2 = -np.ones(d + 1)
@@ -130,10 +130,10 @@ for k in range(len(N_plus_minus_list)):
         variable_values, slopes2, intercepts2
     )
 
-    print("Calculate the affine pieces")
+    # print("Calculate the affine pieces")
     affine_pieces = find_affine_pieces(rescaled_variable_values, max_z=1e4)
 
-    print("Plot the affine pieces")
+    # print("Plot the affine pieces")
     face_colors = "C0"
     plt.figure(figsize=(8, 8), facecolor="w")
     ax = plt.axes(projection="3d")
