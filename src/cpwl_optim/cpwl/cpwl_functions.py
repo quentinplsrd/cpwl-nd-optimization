@@ -262,7 +262,7 @@ def check_validity_affine_pieces(affine_pieces: dict):
 def illustrate_CPWL(
     data: np.ndarray,
     var_dict: dict,
-    faces: list(np.ndarray),
+    faces: list,
     ax: matplotlib.axes.Axes = None,
     size: float = 5,
     colormap: str | None = None,

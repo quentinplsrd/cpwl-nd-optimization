@@ -31,12 +31,14 @@ Additionally, the environment includes built-in tools to visualize the resulting
      uv venv .venv
      source .venv\Scripts\activate
      uv sync
+     uv pip install .
      ```
    * **Mac/Linux:**
      ```bash
      uv venv .venv
      source .venv/bin/activate
      uv sync
+     uv pip install .
      ```
 
 ## Usage

@@ -540,16 +540,16 @@ def solve_CPWL_model(
 
 def extract_values(
     variables: dict,
-    result: mathopt.SolveResult,
+    result,
     data: np.ndarray = None,
     clean_values: bool = False,
 ):
-    if result.status() != mathopt.SolveStatus.OPTIMAL:
-        print(
-            f"Warning: The optimization problem was not solved to optimality. "
-            f"Status: {result.status()}. "
-            f"The extracted variable values may be suboptimal or infeasible."
-        )
+    # if result.status() != mathopt.SolveStatus.OPTIMAL:
+    #     print(
+    #         f"Warning: The optimization problem was not solved to optimality. "
+    #         f"Status: {result.status()}. "
+    #         f"The extracted variable values may be suboptimal or infeasible."
+    #     )
 
     N_plus = len(variables["bPlus"])
     N_minus = len(variables["bMinus"])
