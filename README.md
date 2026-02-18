@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
-This project provides a robust Python environment for fitting optimal Continuous Piecewise Linear (CPWL) functions to datasets in general dimensions ($n$D).
+This project provides a robust Python environment for fitting optimal Continuous Piecewise Linear (CPWL) functions to datasets in general dimensions $nD$.
 
 The core script formulates the fitting problem as a Mixed-Integer Linear Programming (MILP) model, allowing for precise optimization using Google's **OR-Tools**. It supports a variety of industry-standard solvers, including **GUROBI**, **HiGHS**, and **SCIP**.
 
