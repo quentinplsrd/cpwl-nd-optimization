@@ -1,6 +1,10 @@
 # Continuous Piecewise Linear (CPWL) Fitting
 
-This project provides a robust Python environment for fitting optimal Continuous Piecewise Linear (CPWL) functions to datasets in general dimensions ($n$D).
+![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+
+This project provides a robust Python environment for fitting optimal Continuous Piecewise Linear (CPWL) functions to datasets in general dimensions $nD$.
 
 The core script formulates the fitting problem as a Mixed-Integer Linear Programming (MILP) model, allowing for precise optimization using Google's **OR-Tools**. It supports a variety of industry-standard solvers, including **GUROBI**, **HiGHS**, and **SCIP**.
 
@@ -8,39 +12,62 @@ Additionally, the environment includes built-in tools to visualize the resulting
 
 ## Prerequisites
 
-* Python 3.10 or higher
-* Git
+* [Python](https://www.python.org/downloads/) >=3.10
+* [uv](https://docs.astral.sh/uv/getting-started/installation/)
+* [Git](https://git-scm.com/)
 
 ## Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/quentinplsrd/cpwl-nd-optimization.git](https://github.com/quentinplsrd/cpwl-nd-optimization.git)
-    cd cpwl-nd-optimization
-    ```
+1. **Clone the repository:**
 
-2.  **Create a virtual environment:**
-    * **Windows:**
-        ```bash
-        python -m venv .venv
-        ```
-    * **Mac/Linux:**
-        ```bash
-        python3 -m venv .venv
-        ```
+   ```bash
+   git clone https://github.com/quentinplsrd/cpwl-nd-optimization.git
+   cd cpwl-nd-optimization
+   ```
+2. **Create a virtual environment:**
 
-3.  **Activate the environment:**
-    * **Windows:** `.venv\Scripts\activate`
-    * **Mac/Linux:** `source .venv/bin/activate`
-
-4.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+   * **Windows:**
+     ```bash
+     uv venv .venv
+     source .venv\Scripts\activate
+     uv sync
+     uv pip install .
+     ```
+   * **Mac/Linux:**
+     ```bash
+     uv venv .venv
+     source .venv/bin/activate
+     uv sync
+     uv pip install .
+     ```
 
 ## Usage
 
 To run the main analysis script:
 
 ```bash
-python src/main_script.py
+cd scripts
+uv run run_case_studies.py
+```
+
+## Citation:
+
+If you have used this code for research purposes, you can cite our publication by:
+
+[Quentin Ploussard, Xiang Li, Matija Pavičević (2026) Tightening the Difference-of-Convex Formulation for the Piecewise Linear Approximation in General Dimensions. INFORMS Journal on Optimization 0(0). https://doi.org/10.1287/ijoo.2025.0074](https://pubsonline.informs.org/doi/full/10.1287/ijoo.2025.0074)
+
+BibTex:
+
+```
+@article{ploussardDoC2025,
+	title = {Tightening the Difference}-of-{Convex} {Formulation} for the {Piecewise} {Linear} {Approximation} in {General} {Dimensions}},
+	issn = {2575-1484, 2575-1492},
+	doi = {10.1287/ijoo.2025.0074},
+	journal = {INFORMS Journal on Optimization},
+	author = {Ploussard, Quentin and Li, Xiang and Pavičević, Matija},
+	month = dec,
+	year = {2025},
+	pages = {ijoo.2025.0074},
+}
+
+```

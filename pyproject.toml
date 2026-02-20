@@ -1,0 +1,21 @@
+[project]
+name = "cpwl_optim"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=6.31.0",
+    "matplotlib>=3.9.0",
+    "openpyxl>=3.1.0",
+    "ortools>=9.15.6755",
+    "pandas>=2.2.0",
+    "scipy>=1.13.0",
+    "setuptools>=82.0.0",
+    "spyder-kernels==3.0.*",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.31.0",
+]

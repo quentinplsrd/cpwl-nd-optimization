@@ -13,6 +13,10 @@ __pycache__/
 venv/
 env/
 ENV/
+office/
+testenv/
+.venv-win/
+.venv-mac/
 
 # Distribution / packaging
 build/
@@ -37,6 +41,7 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
+.python-version
 
 # Jupyter Notebook
 .ipynb_checkpoints/
@@ -81,8 +86,14 @@ Desktop.ini
 *.swo
 
 # ------------------------
-# Misc
+# Misc, including Jupyter Notebooks
 # ------------------------
+/output
+/image
 *.tmp
 *.bak
 *.old
+*.ipynb 
+
+Notes.md
+CPWL_nD_MILP.py

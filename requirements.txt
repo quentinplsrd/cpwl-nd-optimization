@@ -1,7 +1,0 @@
-numpy>=1.26.0,<2.0.0
-pandas>=2.2.0
-scipy>=1.13.0
-matplotlib>=3.9.0
-ortools>=9.14.0
-spyder-kernels==3.0.*
-openpyxl>=3.1.0
