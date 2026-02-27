@@ -6,6 +6,7 @@ Created on Mon Oct 27 13:40:10 2025
 """
 # %%
 import os
+import time
 from cpwl_optim.optim.solver import solve_CPWL_model, extract_values
 from cpwl_optim.cpwl.tight_regions import find_affine_set, get_tight_parameters
 from cpwl_optim.cpwl.data_scaler import (
@@ -32,19 +33,18 @@ if not os.path.exists("../output"):
     os.makedirs("../output")
 
 print("Create data set")
-path = "../data/crystal_hydro.xlsx"
+# path_crystal = "../data/crystal_hydro.xlsx"
+# path_compressor = "../data/compressor1.xlsx"
 
-for data_loader, arg, n_affine_pieces in [
-    (load_case1_data, None, [2, 3]),
-    (load_case2_data, path, [2, 3]),
-    (load_case3_data, None, [6, 1]),
+for data_loader, arg, n_affine_pieces, max_error in [
+    (load_case1_data, [2, 4], 0.5),
+    (load_case2_data, [1, 5], 0.02),
+    (load_case3_data, [2, 4], 15.),
+    (load_case4_data, [8, 1], 0.5),
 ]:
-    if arg is not None:
-        data, descr = data_loader(arg)
-    else:
-        data, descr = data_loader()
+    
+    data, descr = data_loader()
 
-    max_error = 0.5
     n_plus, n_minus = n_affine_pieces
     print(f"Max approximation error (predefined): {max_error}\n")
 
@@ -67,11 +67,13 @@ for data_loader, arg, n_affine_pieces in [
     )
 
     print("Solve the MILP model")
+    time.sleep(0.5)
     model, variables, result = solve_CPWL_model(
         rescaled_data,
         max_error=rescaled_error,
         N_plus=n_plus,
         N_minus=n_minus,
+        objective="max error",
         big_M_constraint="tight",
         solver="HIGHS",
         default_big_M=1e6,
@@ -80,7 +82,7 @@ for data_loader, arg, n_affine_pieces in [
         impose_d_plus_1_points_per_piece="f+ and f-",
         sort_affine_pieces=False,
         bounded_variables=True,
-        time_limit_seconds=60,
+        time_limit_seconds=300,
     )
 
     print("Extract and clean the CPWL results")

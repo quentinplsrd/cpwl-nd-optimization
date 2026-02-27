@@ -20,7 +20,7 @@ def load_case1_data(naxis: int = 9):
     return data, descr
 
 
-def load_case2_data(path: str = "data/crystalhydro.xlsx"):
+def load_case2_data(path: str = "../data/crystal_hydro.csv"):
     """
     Read data for Crystal HydroPower Plant
 
@@ -29,24 +29,36 @@ def load_case2_data(path: str = "data/crystalhydro.xlsx"):
     """
 
     try:
-        data = pd.read_excel(path, index_col=0)
+        data = pd.read_csv(path, index_col=None).values
     except Exception as e:
         print(f"Error reading data from {path}: {e}")
         raise
-    # data = pd.read_excel(path, index_col=0)
-    data = (data.values)[:, -3:]
-    data = data[~np.isnan(data).any(axis=1), :]
 
-    if len(data) == 0:
-        raise ValueError(
-            f"No valid data found in {path} after removing rows with NaN values."
-        )
     descr = "crystalhydro"
 
     return data, descr
 
 
-def load_case3_data(naxis: int = 4):
+def load_case3_data(path: str = "../data/compressor.csv"):
+    """
+    Read data for Gas Compressor
+
+    path: path to data file
+    data: input and output data in the form of (x, y, z)
+    """
+
+    try:
+        data = pd.read_csv(path, index_col=None).values
+    except Exception as e:
+        print(f"Error reading data from {path}: {e}")
+        raise
+
+    descr = "gascompressor"
+
+    return data, descr
+
+
+def load_case4_data(naxis: int = 4):
     """
     Data for z = f(w, x, y) = w^2 + x^2 + y^2
 
