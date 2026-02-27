@@ -33,10 +33,8 @@ if not os.path.exists("../output"):
     os.makedirs("../output")
 
 print("Create data set")
-# path_crystal = "../data/crystal_hydro.xlsx"
-# path_compressor = "../data/compressor1.xlsx"
 
-for data_loader, arg, n_affine_pieces, max_error in [
+for data_loader, n_affine_pieces, max_error in [
     (load_case1_data, [2, 4], 0.5),
     (load_case2_data, [1, 5], 0.02),
     (load_case3_data, [2, 4], 15.),
